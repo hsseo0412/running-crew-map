@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m alembic init alembic)",
+      "Bash(alembic init:*)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(ls /c/Python*)",
+      "Read(//c/Users/aabb3/AppData/Local/Programs/**)",
+      "Bash(/c/Users/aabb3/AppData/Local/Microsoft/WindowsApps/python.exe:*)"
+    ]
+  }
+}
