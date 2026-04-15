@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CrewDetail } from "./components/CrewDetail";
 import { CrewForm } from "./components/CrewForm";
 import { CrewList } from "./components/CrewList";
 import { MapContainer } from "./components/map/MapContainer";
@@ -14,7 +15,7 @@ export default function App() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [mapInstance, setMapInstance] = useState<kakao.maps.Map | null>(null);
   const [clickedPos, setClickedPos] = useState<{ lat: number; lng: number } | null>(null);
-  const [selectedCrewId, setSelectedCrewId] = useState<number | null>(null);
+  const [selectedCrew, setSelectedCrew] = useState<Crew | null>(null);
   const [editingCrew, setEditingCrew] = useState<Crew | null>(null);
 
   // 필터 상태
@@ -65,14 +66,11 @@ export default function App() {
     if (!mapInstance) return;
     mapInstance.panTo(new kakao.maps.LatLng(crew.latitude, crew.longitude));
     mapInstance.setLevel(3, { animate: true });
-    setSelectedCrewId(crew.id);
   }
 
-  // 수정 버튼
-  function handleEditCrew(crew: Crew) {
-    setEditingCrew(crew);
-    setClickedPos(null); // 이전 클릭 위치 초기화
-    setTab("form");
+  function handleSelectCrew(crew: Crew) {
+    setSelectedCrew(crew);
+    focusCrew(crew);
   }
 
   // 삭제 버튼
@@ -83,7 +81,7 @@ export default function App() {
       const res = await fetch(`/api/crews/${crew.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
       setCrews((prev) => prev.filter((c) => c.id !== crew.id));
-      if (selectedCrewId === crew.id) setSelectedCrewId(null);
+      if (selectedCrew?.id === crew.id) setSelectedCrew(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : "삭제에 실패했습니다.");
     }
@@ -100,7 +98,7 @@ export default function App() {
     }
     setEditingCrew(null);
     setClickedPos(null);
-    setSelectedCrewId(resultCrew.id);
+    setSelectedCrew(resultCrew);
     if (mapInstance) {
       mapInstance.panTo(new kakao.maps.LatLng(resultCrew.latitude, resultCrew.longitude));
       mapInstance.setLevel(4, { animate: true });
@@ -113,8 +111,18 @@ export default function App() {
     if (next === "list") {
       setEditingCrew(null);
       setClickedPos(null);
+    } else {
+      setSelectedCrew(null);
     }
     setTab(next);
+  }
+
+  // 수정 버튼 (상세 패널에서도 호출)
+  function handleEditCrew(crew: Crew) {
+    setEditingCrew(crew);
+    setSelectedCrew(null);
+    setClickedPos(null);
+    setTab("form");
   }
 
   return (
@@ -138,20 +146,29 @@ export default function App() {
 
         <div style={s.tabContent}>
           {tab === "list" ? (
-            <CrewList
-              crews={filteredCrews}
-              fetchError={fetchError}
-              selectedCrewId={selectedCrewId}
-              searchQuery={searchQuery}
-              filterLevel={filterLevel}
-              filterDay={filterDay}
-              onClickCrew={focusCrew}
-              onEditCrew={handleEditCrew}
-              onDeleteCrew={handleDeleteCrew}
-              onSearchChange={setSearchQuery}
-              onFilterLevelChange={setFilterLevel}
-              onFilterDayChange={setFilterDay}
-            />
+            selectedCrew ? (
+              <CrewDetail
+                crew={selectedCrew}
+                onBack={() => setSelectedCrew(null)}
+                onEdit={handleEditCrew}
+                onDelete={handleDeleteCrew}
+              />
+            ) : (
+              <CrewList
+                crews={filteredCrews}
+                fetchError={fetchError}
+                selectedCrewId={null}
+                searchQuery={searchQuery}
+                filterLevel={filterLevel}
+                filterDay={filterDay}
+                onClickCrew={handleSelectCrew}
+                onEditCrew={handleEditCrew}
+                onDeleteCrew={handleDeleteCrew}
+                onSearchChange={setSearchQuery}
+                onFilterLevelChange={setFilterLevel}
+                onFilterDayChange={setFilterDay}
+              />
+            )
           ) : (
             <CrewForm
               editingCrew={editingCrew}
@@ -175,7 +192,8 @@ export default function App() {
               lng={crew.longitude}
               title={crew.name}
               crew={crew}
-              isSelected={selectedCrewId === crew.id}
+              isSelected={selectedCrew?.id === crew.id}
+              onSelect={tab === "list" ? handleSelectCrew : undefined}
             />
           ))}
 

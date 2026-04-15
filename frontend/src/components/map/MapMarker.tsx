@@ -63,9 +63,10 @@ interface Props {
   title: string;
   crew?: Crew;          // 있으면 상세 말풍선
   isSelected?: boolean; // 목록 클릭 시 말풍선 강제 오픈
+  onSelect?: (crew: Crew) => void; // 마커 클릭 시 상세 패널 연동
 }
 
-export function MapMarker({ lat, lng, title, crew, isSelected }: Props) {
+export function MapMarker({ lat, lng, title, crew, isSelected, onSelect }: Props) {
   const map = useMap();
   const markerRef = useRef<kakao.maps.Marker | null>(null);
   const infoWindowRef = useRef<kakao.maps.InfoWindow | null>(null);
@@ -85,13 +86,14 @@ export function MapMarker({ lat, lng, title, crew, isSelected }: Props) {
     const infoWindow = new kakao.maps.InfoWindow({ content, removable: true });
     infoWindowRef.current = infoWindow;
 
-    // 마커 클릭 → 이전 말풍선 닫고 현재 열기
+    // 마커 클릭 → 이전 말풍선 닫고 현재 열기 + 상세 패널 연동
     kakao.maps.event.addListener(marker, "click", () => {
       if (currentInfoWindow && currentInfoWindow !== infoWindow) {
         currentInfoWindow.close();
       }
       infoWindow.open(map, marker);
       currentInfoWindow = infoWindow;
+      if (crew) onSelect?.(crew);
     });
 
     return () => {
