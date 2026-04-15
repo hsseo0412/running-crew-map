@@ -68,8 +68,9 @@ export default function App() {
 
   function focusCrew(crew: Crew) {
     if (!mapInstance) return;
-    mapInstance.panTo(new kakao.maps.LatLng(crew.latitude, crew.longitude));
-    mapInstance.setLevel(3, { animate: true });
+    const latlng = new kakao.maps.LatLng(crew.latitude, crew.longitude);
+    mapInstance.setLevel(3); // 줌 먼저 확정 (애니메이션 없이) → panTo와 충돌 방지
+    mapInstance.panTo(latlng);
   }
 
   function handleSelectCrew(crew: Crew) {
