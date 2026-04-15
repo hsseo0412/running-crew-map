@@ -101,7 +101,7 @@ export function MapMarker({ lat, lng, title, crew, isSelected, onSelect }: Props
       ? buildRichContent(crew)
       : `<div style="padding:6px 10px;font-size:13px;white-space:nowrap;">${title}</div>`;
 
-    const infoWindow = new kakao.maps.InfoWindow({ content, removable: true });
+    const infoWindow = new kakao.maps.InfoWindow({ content, removable: true, disableAutoPan: true });
     infoWindowRef.current = infoWindow;
 
     // 마커 클릭 → 이전 말풍선 닫고 현재 열기 + 상세 패널 연동
