@@ -28,10 +28,11 @@ export default function App() {
 
   useEffect(() => {
     // Plan SC: FR-01, FR-02 — q 있으면 ILIKE 검색, 없으면 전체
+    const ctrl = new AbortController();
     const params = debouncedSearch
       ? `?q=${encodeURIComponent(debouncedSearch)}`
       : "";
-    fetch(`/api/crews${params}`)
+    fetch(`/api/crews${params}`, { signal: ctrl.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
         return res.json() as Promise<Crew[]>;
@@ -40,7 +41,10 @@ export default function App() {
         setFetchError(null);
         setCrews(data);
       })
-      .catch((e: Error) => setFetchError(e.message));
+      .catch((e: Error) => {
+        if (e.name !== "AbortError") setFetchError(e.message);
+      });
+    return () => ctrl.abort();
   }, [debouncedSearch]);
 
   const filteredCrews = useMemo(() => {

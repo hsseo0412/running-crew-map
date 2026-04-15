@@ -47,6 +47,7 @@ export function MapContainer({ children, onLoad, onMapClick }: Props) {
     if (!map || !onMapClick) return;
 
     const handler = (e: kakao.maps.MapMouseEvent) => {
+      if (!e.latLng) return;
       onMapClick(e.latLng.getLat(), e.latLng.getLng());
     };
 

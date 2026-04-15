@@ -103,11 +103,11 @@ export function CrewDetail({ crew, onBack, onEdit, onDelete }: Props) {
             <span
               style={{
                 ...s.levelBadge,
-                background: LEVEL_COLOR[crew.level].bg,
-                color: LEVEL_COLOR[crew.level].color,
+                background: (LEVEL_COLOR[crew.level] ?? { bg: "#e5e7eb", color: "#374151" }).bg,
+                color: (LEVEL_COLOR[crew.level] ?? { bg: "#e5e7eb", color: "#374151" }).color,
               }}
             >
-              {LEVEL_LABEL[crew.level]}
+              {LEVEL_LABEL[crew.level] ?? crew.level}
             </span>
           </div>
         )}

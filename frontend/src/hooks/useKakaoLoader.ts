@@ -2,23 +2,31 @@ import { useEffect, useState } from "react";
 
 type LoadState = "idle" | "loading" | "loaded" | "error";
 
+type Callback = { resolve: () => void; reject: (e: Error) => void };
+
 let loadState: LoadState = "idle";
-const callbacks: Array<() => void> = [];
+let loadError: Error | null = null;
+const callbacks: Callback[] = [];
 
 function notifyAll() {
-  callbacks.splice(0).forEach((cb) => cb());
+  callbacks.splice(0).forEach((cb) => cb.resolve());
+}
+
+function rejectAll(err: Error) {
+  callbacks.splice(0).forEach((cb) => cb.reject(err));
 }
 
 function loadKakaoSDK(appKey: string): Promise<void> {
   if (loadState === "loaded") return Promise.resolve();
+  if (loadState === "error") return Promise.reject(loadError);
   if (loadState === "loading") {
-    return new Promise((resolve) => callbacks.push(resolve));
+    return new Promise((resolve, reject) => callbacks.push({ resolve, reject }));
   }
 
   loadState = "loading";
 
   return new Promise((resolve, reject) => {
-    callbacks.push(resolve);
+    callbacks.push({ resolve, reject });
 
     const script = document.createElement("script");
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
@@ -33,7 +41,8 @@ function loadKakaoSDK(appKey: string): Promise<void> {
 
     script.onerror = () => {
       loadState = "error";
-      reject(new Error("카카오 지도 SDK 로드에 실패했습니다. 앱 키와 도메인 등록을 확인해주세요."));
+      loadError = new Error("카카오 지도 SDK 로드에 실패했습니다. 앱 키와 도메인 등록을 확인해주세요.");
+      rejectAll(loadError);
     };
 
     document.head.appendChild(script);

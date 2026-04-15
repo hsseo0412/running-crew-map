@@ -11,15 +11,32 @@ const LEVEL_LABEL: Record<string, string> = {
   advanced: "고급",
 };
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeHref(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 function buildRichContent(crew: Crew): string {
   const scheduleItems: string[] = [];
   if (crew.meeting_day || crew.meeting_time) {
-    scheduleItems.push(
-      `<span>🗓&nbsp;${[crew.meeting_day, crew.meeting_time].filter(Boolean).join(" ")}</span>`
-    );
+    const dayTime = [crew.meeting_day, crew.meeting_time].filter(Boolean).map(s => escapeHtml(s!)).join(" ");
+    scheduleItems.push(`<span>🗓&nbsp;${dayTime}</span>`);
   }
-  if (crew.pace) scheduleItems.push(`<span>⏱&nbsp;${crew.pace}</span>`);
-  if (crew.level) scheduleItems.push(`<span>📊&nbsp;${LEVEL_LABEL[crew.level]}</span>`);
+  if (crew.pace) scheduleItems.push(`<span>⏱&nbsp;${escapeHtml(crew.pace)}</span>`);
+  if (crew.level) scheduleItems.push(`<span>📊&nbsp;${escapeHtml(LEVEL_LABEL[crew.level] ?? crew.level)}</span>`);
   if (crew.member_count != null) scheduleItems.push(`<span>👥&nbsp;${crew.member_count}명</span>`);
 
   const detailHtml = scheduleItems.length
@@ -34,12 +51,13 @@ function buildRichContent(crew: Crew): string {
     : "";
 
   const addressHtml = crew.address
-    ? `<div style="font-size:12px;color:#6b7280;margin-top:3px;">${crew.address}</div>`
+    ? `<div style="font-size:12px;color:#6b7280;margin-top:3px;">${escapeHtml(crew.address)}</div>`
     : "";
 
-  const contactHtml = crew.contact
+  const contactHref = crew.contact ? safeHref(crew.contact) : null;
+  const contactHtml = contactHref
     ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0;">
-        <a href="${crew.contact}" target="_blank" rel="noreferrer"
+        <a href="${escapeHtml(contactHref)}" target="_blank" rel="noreferrer noopener"
            style="font-size:12px;color:#0ea5e9;text-decoration:none;font-weight:600;">
           연락하기 →
         </a>
@@ -50,7 +68,7 @@ function buildRichContent(crew: Crew): string {
     <div style="padding:12px 14px;width:220px;box-sizing:border-box;overflow:hidden;
                 font-family:'Apple SD Gothic Neo',sans-serif;line-height:1.4;">
       <div style="font-size:14px;font-weight:700;color:#111;
-                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${crew.name}</div>
+                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(crew.name)}</div>
       ${addressHtml}
       ${detailHtml}
       ${contactHtml}

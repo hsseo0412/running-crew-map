@@ -34,10 +34,12 @@ export function useAddressSearch(query: string): UseAddressSearchResult {
       return;
     }
 
+    let cancelled = false;
     setIsLoading(true);
 
     const places = new kakao.maps.services.Places();
     places.keywordSearch(trimmed, (result, status) => {
+      if (cancelled) return;
       if (status === kakao.maps.services.Status.OK) {
         setSuggestions(result.slice(0, 5));
       } else {
@@ -45,6 +47,8 @@ export function useAddressSearch(query: string): UseAddressSearchResult {
       }
       setIsLoading(false);
     });
+
+    return () => { cancelled = true; };
   }, [debouncedQuery]);
 
   function clearSuggestions() {
