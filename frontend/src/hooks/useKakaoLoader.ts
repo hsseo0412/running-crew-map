@@ -21,7 +21,7 @@ function loadKakaoSDK(appKey: string): Promise<void> {
     callbacks.push(resolve);
 
     const script = document.createElement("script");
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
     script.type = "text/javascript";
 
     script.onload = () => {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Crew } from "../types/crew";
+import { useAddressSearch } from "../hooks/useAddressSearch";
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"] as const;
 
@@ -63,6 +64,12 @@ export function CrewForm({ editingCrew, clickedPos, onSuccess }: Props) {
   );
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const { suggestions, clearSuggestions } = useAddressSearch(
+    showSuggestions ? form.address : ""
+  );
 
   // 수정 대상 크루가 바뀌면 폼 초기화
   useEffect(() => {
@@ -196,13 +203,61 @@ export function CrewForm({ editingCrew, clickedPos, onSuccess }: Props) {
       {/* 주소 */}
       <div style={s.field}>
         <label style={s.label}>주소</label>
-        <input
-          style={s.input}
-          name="address"
-          value={form.address}
-          onChange={handleChange}
-          placeholder="예: 서울시 마포구 한강공원"
-        />
+        <div style={s.addressWrap}>
+          <input
+            style={s.input}
+            name="address"
+            value={form.address}
+            onChange={(e) => {
+              handleChange(e);
+              setShowSuggestions(true);
+              setHoveredIndex(null);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => {
+              setTimeout(() => {
+                setShowSuggestions(false);
+                clearSuggestions();
+              }, 150);
+            }}
+            placeholder="예: 서울시 마포구 한강공원"
+            autoComplete="off"
+          />
+          {showSuggestions && suggestions.length > 0 && (
+            <ul style={s.dropdown}>
+              {suggestions.map((place, i) => (
+                <li
+                  key={i}
+                  style={{
+                    ...s.dropdownItem,
+                    ...(hoveredIndex === i ? s.dropdownItemHover : {}),
+                  }}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  onMouseDown={(e) => {
+                    // blur 이벤트보다 먼저 처리되도록 mousedown 사용
+                    e.preventDefault();
+                    const addr = place.road_address_name || place.address_name;
+                    setForm((prev) => ({
+                      ...prev,
+                      address: addr,
+                      latitude: parseFloat(place.y).toFixed(6),
+                      longitude: parseFloat(place.x).toFixed(6),
+                    }));
+                    setShowSuggestions(false);
+                    clearSuggestions();
+                    setHoveredIndex(null);
+                  }}
+                >
+                  <span style={s.dropdownPlaceName}>{place.place_name}</span>
+                  {place.road_address_name && (
+                    <span style={s.dropdownAddr}>{place.road_address_name}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* 정기 러닝 요일 */}
@@ -325,6 +380,41 @@ const s = {
   posValue: { fontSize: 12, color: "#0c4a6e", fontFamily: "monospace" },
   posHint: { fontSize: 12, color: "#64748b" },
   field: { display: "flex", flexDirection: "column" as const, gap: 4 },
+  addressWrap: { position: "relative" as const },
+  dropdown: {
+    position: "absolute" as const,
+    top: "100%",
+    left: 0,
+    width: "100%",
+    background: "#fff",
+    border: "1px solid #d1d5db",
+    borderRadius: 6,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+    zIndex: 100,
+    margin: 0,
+    padding: 0,
+    listStyle: "none",
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: "8px 10px",
+    fontSize: 13,
+    cursor: "pointer",
+    display: "flex" as const,
+    flexDirection: "column" as const,
+    gap: 2,
+  },
+  dropdownItemHover: {
+    background: "#f0f9ff",
+  },
+  dropdownPlaceName: {
+    color: "#111827",
+    fontWeight: 600,
+  },
+  dropdownAddr: {
+    color: "#6b7280",
+    fontSize: 12,
+  },
   label: { fontSize: 13, fontWeight: 600, color: "#374151" },
   required: { color: "#dc2626" },
   input: {

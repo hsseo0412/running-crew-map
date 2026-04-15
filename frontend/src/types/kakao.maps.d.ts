@@ -2,6 +2,30 @@ declare namespace kakao {
   namespace maps {
     function load(callback: () => void): void;
 
+    namespace services {
+      interface KakaoPlace {
+        place_name: string;
+        road_address_name: string;
+        address_name: string;
+        x: string; // longitude
+        y: string; // latitude
+        category_name: string;
+      }
+
+      enum Status {
+        OK = "OK",
+        ZERO_RESULT = "ZERO_RESULT",
+        ERROR = "ERROR",
+      }
+
+      class Places {
+        keywordSearch(
+          keyword: string,
+          callback: (result: KakaoPlace[], status: Status) => void
+        ): void;
+      }
+    }
+
     class LatLng {
       constructor(lat: number, lng: number);
       getLat(): number;
