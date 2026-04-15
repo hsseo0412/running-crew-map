@@ -3,6 +3,7 @@ import { CrewForm } from "./components/CrewForm";
 import { CrewList } from "./components/CrewList";
 import { MapContainer } from "./components/map/MapContainer";
 import { MapMarker } from "./components/map/MapMarker";
+import { useDebounce } from "./hooks/useDebounce";
 import type { Crew } from "./types/crew";
 
 type Tab = "list" | "form";
@@ -20,15 +21,26 @@ export default function App() {
   const [filterLevel, setFilterLevel] = useState("");
   const [filterDay, setFilterDay] = useState("");
 
+  // Design Ref: §2.1 — searchQuery → debounce → API 재호출 체인
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
   useEffect(() => {
-    fetch("/api/crews")
+    // Plan SC: FR-01, FR-02 — q 있으면 ILIKE 검색, 없으면 전체
+    const params = debouncedSearch
+      ? `?q=${encodeURIComponent(debouncedSearch)}`
+      : "";
+    fetch(`/api/crews${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
         return res.json() as Promise<Crew[]>;
       })
-      .then(setCrews)
+      .then((data) => {
+        setFetchError(null);
+        setCrews(data);
+      })
       .catch((e: Error) => setFetchError(e.message));
-  }, []);
+  }, [debouncedSearch]);
 
   const filteredCrews = useMemo(() => {
     return crews.filter((crew) => {
@@ -130,11 +142,13 @@ export default function App() {
               crews={filteredCrews}
               fetchError={fetchError}
               selectedCrewId={selectedCrewId}
+              searchQuery={searchQuery}
               filterLevel={filterLevel}
               filterDay={filterDay}
               onClickCrew={focusCrew}
               onEditCrew={handleEditCrew}
               onDeleteCrew={handleDeleteCrew}
+              onSearchChange={setSearchQuery}
               onFilterLevelChange={setFilterLevel}
               onFilterDayChange={setFilterDay}
             />

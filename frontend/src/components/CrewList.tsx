@@ -1,3 +1,4 @@
+import type React from "react";
 import type { Crew } from "../types/crew";
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -12,11 +13,13 @@ interface Props {
   crews: Crew[];
   fetchError: string | null;
   selectedCrewId: number | null;
+  searchQuery: string;
   filterLevel: string;
   filterDay: string;
   onClickCrew: (crew: Crew) => void;
   onEditCrew: (crew: Crew) => void;
   onDeleteCrew: (crew: Crew) => void;
+  onSearchChange: (v: string) => void;
   onFilterLevelChange: (v: string) => void;
   onFilterDayChange: (v: string) => void;
 }
@@ -25,16 +28,38 @@ export function CrewList({
   crews,
   fetchError,
   selectedCrewId,
+  searchQuery,
   filterLevel,
   filterDay,
   onClickCrew,
   onEditCrew,
   onDeleteCrew,
+  onSearchChange,
   onFilterLevelChange,
   onFilterDayChange,
 }: Props) {
   return (
     <div>
+      {/* 검색 영역 — Design Ref: §5.1 */}
+      <div style={s.searchSection}>
+        <div style={s.searchInputWrap}>
+          <span style={s.searchIcon}>🔍</span>
+          <input
+            style={s.searchInput}
+            type="text"
+            placeholder="크루명 또는 주소 검색"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+          {/* Plan SC: FR-06 — X 버튼으로 검색어 초기화 */}
+          {searchQuery && (
+            <button style={s.searchClear} onClick={() => onSearchChange("")}>
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 필터 영역 */}
       <div style={s.filterSection}>
         <div style={s.filterRow}>
@@ -77,8 +102,11 @@ export function CrewList({
       <div style={s.resultCount}>{crews.length}개 크루</div>
 
       {fetchError && <p style={s.errorText}>{fetchError}</p>}
+      {/* Plan SC: FR-07 — 결과 0건 빈 상태 메시지 */}
       {!fetchError && crews.length === 0 && (
-        <p style={s.emptyText}>조건에 맞는 크루가 없습니다.</p>
+        <p style={s.emptyText}>
+          {searchQuery ? "검색 결과가 없습니다." : "조건에 맞는 크루가 없습니다."}
+        </p>
       )}
 
       <ul style={s.list}>
@@ -124,6 +152,39 @@ export function CrewList({
 }
 
 const s = {
+  searchSection: {
+    padding: "10px 12px 8px",
+    borderBottom: "1px solid #e5e7eb",
+    background: "#fff",
+  },
+  searchInputWrap: {
+    display: "flex",
+    alignItems: "center",
+    background: "#f3f4f6",
+    borderRadius: 8,
+    padding: "0 10px",
+    gap: 6,
+  },
+  searchIcon: { fontSize: 13, color: "#9ca3af", flexShrink: 0 },
+  searchInput: {
+    flex: 1,
+    border: "none",
+    background: "transparent",
+    padding: "8px 0",
+    fontSize: 13,
+    color: "#111",
+    outline: "none",
+  } as React.CSSProperties,
+  searchClear: {
+    border: "none",
+    background: "transparent",
+    color: "#9ca3af",
+    cursor: "pointer",
+    fontSize: 13,
+    padding: "0 2px",
+    flexShrink: 0,
+    lineHeight: 1,
+  },
   filterSection: {
     padding: "12px 16px",
     borderBottom: "1px solid #e5e7eb",

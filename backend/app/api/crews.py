@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,8 +10,21 @@ router = APIRouter(prefix="/api/crews", tags=["crews"])
 
 
 @router.get("", response_model=list[CrewResponse])
-def list_crews(db: Session = Depends(get_db)):
-    return db.query(Crew).order_by(Crew.created_at.desc()).all()
+def list_crews(
+    # Design Ref: §4 — name ILIKE OR address ILIKE, q 없으면 전체 반환
+    q: str | None = Query(default=None, description="크루명·주소 검색 키워드"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Crew)
+    if q:
+        keyword = f"%{q}%"
+        query = query.filter(
+            or_(
+                Crew.name.ilike(keyword),
+                Crew.address.ilike(keyword),
+            )
+        )
+    return query.order_by(Crew.created_at.desc()).all()
 
 
 @router.get("/{crew_id}", response_model=CrewResponse)

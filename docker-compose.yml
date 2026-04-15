@@ -27,6 +27,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      - VITE_KAKAO_MAP_KEY=fbf24c2bacd30392ffdcc09f78f37716
     depends_on:
       - backend
     networks:

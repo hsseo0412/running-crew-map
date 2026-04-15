@@ -7,7 +7,9 @@
       "Bash(where python3:*)",
       "Bash(ls /c/Python*)",
       "Read(//c/Users/aabb3/AppData/Local/Programs/**)",
-      "Bash(/c/Users/aabb3/AppData/Local/Microsoft/WindowsApps/python.exe:*)"
+      "Bash(/c/Users/aabb3/AppData/Local/Microsoft/WindowsApps/python.exe:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)"
     ]
   }
 }
