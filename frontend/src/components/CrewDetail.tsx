@@ -1,4 +1,5 @@
 import type { Crew } from "../types/crew";
+import ReviewSection from "./ReviewSection";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "초급",
@@ -134,6 +135,9 @@ export function CrewDetail({ crew, onBack, onEdit, onDelete }: Props) {
             </a>
           </>
         )}
+
+        <div style={s.divider} />
+        <ReviewSection crewId={crew.id} />
       </div>
     </div>
   );
