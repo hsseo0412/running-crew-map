@@ -11,4 +11,6 @@ export interface Crew {
   level: "beginner" | "intermediate" | "advanced" | null;
   contact: string | null;
   member_count: number | null;
+  avg_rating: number | null;
+  review_count: number;
 }

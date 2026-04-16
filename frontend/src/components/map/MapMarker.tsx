@@ -64,11 +64,20 @@ function buildRichContent(crew: Crew): string {
        </div>`
     : "";
 
+  const ratingHtml =
+    crew.avg_rating != null
+      ? `<div style="font-size:12px;color:#f59e0b;font-weight:600;margin-top:3px;">
+           ★ ${crew.avg_rating.toFixed(1)}
+           <span style="color:#9ca3af;font-weight:400;">(${crew.review_count})</span>
+         </div>`
+      : "";
+
   return `
     <div style="padding:12px 14px;width:220px;box-sizing:border-box;overflow:hidden;
                 font-family:'Apple SD Gothic Neo',sans-serif;line-height:1.4;">
-      <div style="font-size:14px;font-weight:700;color:#111;
+      <div style="font-size:14px;font-weight:700;color:#111;max-width:192px;
                   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(crew.name)}</div>
+      ${ratingHtml}
       ${addressHtml}
       ${detailHtml}
       ${contactHtml}

@@ -118,7 +118,15 @@ export function CrewList({
           >
             {/* 상단: 크루명 + 액션 버튼 */}
             <div style={s.cardHeader}>
-              <strong style={s.crewName}>{crew.name}</strong>
+              <div style={s.crewNameWrap}>
+                <strong style={s.crewName}>{crew.name}</strong>
+                {crew.avg_rating != null && (
+                  <span style={s.ratingBadge}>
+                    ★ {crew.avg_rating.toFixed(1)}
+                    <span style={s.reviewCount}> ({crew.review_count})</span>
+                  </span>
+                )}
+              </div>
               <div style={s.actions}>
                 <button
                   style={s.editBtn}
@@ -134,7 +142,6 @@ export function CrewList({
                 </button>
               </div>
             </div>
-
             {crew.address && <span style={s.crewMeta}>{crew.address}</span>}
             <div style={s.tags}>
               {crew.level && <span style={s.tag}>{LEVEL_LABEL[crew.level]}</span>}
@@ -231,7 +238,10 @@ const s = {
     justifyContent: "space-between",
     gap: 8,
   },
-  crewName: { fontSize: 15, color: "#111", flex: 1, minWidth: 0 },
+  crewNameWrap: { display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 },
+  crewName: { fontSize: 15, color: "#111", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const },
+  ratingBadge: { fontSize: 12, color: "#f59e0b", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" as const },
+  reviewCount: { color: "#9ca3af", fontWeight: 400 },
   actions: { display: "flex", gap: 4, flexShrink: 0 },
   editBtn: {
     fontSize: 11,

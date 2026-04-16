@@ -105,7 +105,6 @@ export default function App() {
     setSelectedCrew(resultCrew);
     if (mapInstance) {
       mapInstance.panTo(new kakao.maps.LatLng(resultCrew.latitude, resultCrew.longitude));
-      mapInstance.setLevel(4, { animate: true });
     }
     setTab("list");
   }

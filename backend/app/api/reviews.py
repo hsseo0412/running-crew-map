@@ -4,9 +4,19 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.redis import CACHE_KEY_CREWS_LIST, get_redis
 from app.models.crew import Crew
 from app.models.review import Review
 from app.schemas.review import ReviewCreate, ReviewDelete, ReviewResponse
+
+
+def _invalidate_list_cache() -> None:
+    r = get_redis()
+    if r:
+        try:
+            r.delete(CACHE_KEY_CREWS_LIST)
+        except Exception:
+            pass
 
 router = APIRouter(tags=["reviews"])
 
@@ -53,6 +63,7 @@ def create_review(crew_id: int, payload: ReviewCreate, db: Session = Depends(get
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="DB 오류가 발생했습니다.",
         )
+    _invalidate_list_cache()
     return review
 
 
@@ -74,3 +85,4 @@ def delete_review(review_id: int, payload: ReviewDelete, db: Session = Depends(g
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="DB 오류가 발생했습니다.",
         )
+    _invalidate_list_cache()

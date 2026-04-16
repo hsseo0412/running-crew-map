@@ -63,5 +63,7 @@ class CrewResponse(CrewBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    avg_rating: float | None = None
+    review_count: int = 0
 
     model_config = {"from_attributes": True}
