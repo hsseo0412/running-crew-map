@@ -223,7 +223,7 @@ export default function ReviewSection({ crewId }: Props) {
         <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>아직 후기가 없습니다.</p>
       ) : (
         <>
-          <ul style={{ listStyle: 'none', padding: 0, paddingBottom: totalPages > 1 ? 0 : 28, margin: '0 0 0.75rem' }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: totalPages > 1 ? '0' : '0 0 0.75rem' }}>
             {pagedReviews.map((review) => (
               <li
                 key={review.id}
@@ -324,36 +324,36 @@ const s = {
     fontSize: '0.875rem',
   },
   pageBtn: {
-    minWidth: 28,
-    height: 28,
+    minWidth: 22,
+    height: 20,
     border: '1px solid #e5e7eb',
-    borderRadius: 6,
+    borderRadius: 4,
     background: '#f9fafb',
     color: '#d1d5db',
     cursor: 'not-allowed',
-    fontSize: '0.875rem',
+    fontSize: '0.75rem',
     fontWeight: 600,
   },
   pageBtnActive: {
-    minWidth: 28,
-    height: 28,
+    minWidth: 22,
+    height: 20,
     border: '1px solid #d1d5db',
-    borderRadius: 6,
+    borderRadius: 4,
     background: '#fff',
     color: '#374151',
     cursor: 'pointer',
-    fontSize: '0.875rem',
+    fontSize: '0.75rem',
     fontWeight: 600,
   },
   pageBtnCurrent: {
-    minWidth: 28,
-    height: 28,
+    minWidth: 22,
+    height: 20,
     border: '1px solid #0ea5e9',
-    borderRadius: 6,
+    borderRadius: 4,
     background: '#0ea5e9',
     color: '#fff',
     cursor: 'pointer',
-    fontSize: '0.875rem',
+    fontSize: '0.75rem',
     fontWeight: 700,
   },
 } as const;
