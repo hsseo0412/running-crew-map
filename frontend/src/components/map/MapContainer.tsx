@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { useKakaoLoader } from "../../hooks/useKakaoLoader";
+import type { Waypoint } from "../../types/route";
 
 // --- Context ---
 export const MapContext = createContext<kakao.maps.Map | null>(null);
@@ -21,12 +22,19 @@ interface Props {
   children?: React.ReactNode;
   onLoad?: (map: kakao.maps.Map) => void;
   onMapClick?: (lat: number, lng: number) => void;
+  /** 코스 등록 중 미리보기 경유지 */
+  courseWaypoints?: Waypoint[];
+  /** 저장된 코스 표시 */
+  shownCourse?: Waypoint[];
 }
 
-export function MapContainer({ children, onLoad, onMapClick }: Props) {
+export function MapContainer({ children, onLoad, onMapClick, courseWaypoints, shownCourse }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
   const { isLoaded, error } = useKakaoLoader();
+  const previewPolylineRef = useRef<kakao.maps.Polyline | null>(null);
+  const previewMarkersRef = useRef<kakao.maps.Marker[]>([]);
+  const shownPolylineRef = useRef<kakao.maps.Polyline | null>(null);
 
   // 지도 초기화
   useEffect(() => {
@@ -56,6 +64,64 @@ export function MapContainer({ children, onLoad, onMapClick }: Props) {
       kakao.maps.event.removeListener(map, "click", handler);
     };
   }, [map, onMapClick]);
+
+  // 코스 등록 미리보기: courseWaypoints → 파란 점선 Polyline + 마커
+  useEffect(() => {
+    if (!map) return;
+
+    // 기존 미리보기 정리
+    previewPolylineRef.current?.setMap(null);
+    previewMarkersRef.current.forEach((m) => m.setMap(null));
+    previewPolylineRef.current = null;
+    previewMarkersRef.current = [];
+
+    if (!courseWaypoints || courseWaypoints.length === 0) return;
+
+    // 경유지 마커
+    const markers = courseWaypoints.map((wp) => {
+      const marker = new kakao.maps.Marker({
+        position: new kakao.maps.LatLng(wp.lat, wp.lng),
+        map,
+      });
+      return marker;
+    });
+    previewMarkersRef.current = markers;
+
+    // 2개 이상이면 Polyline
+    if (courseWaypoints.length >= 2) {
+      const path = courseWaypoints.map((wp) => new kakao.maps.LatLng(wp.lat, wp.lng));
+      const polyline = new kakao.maps.Polyline({
+        path,
+        strokeWeight: 4,
+        strokeColor: "#3b82f6",
+        strokeOpacity: 0.8,
+        strokeStyle: "dashed",
+        map,
+      });
+      previewPolylineRef.current = polyline;
+    }
+  }, [map, courseWaypoints]);
+
+  // 저장된 코스 표시: shownCourse → 파란 실선 Polyline
+  useEffect(() => {
+    if (!map) return;
+
+    shownPolylineRef.current?.setMap(null);
+    shownPolylineRef.current = null;
+
+    if (!shownCourse || shownCourse.length < 2) return;
+
+    const path = shownCourse.map((wp) => new kakao.maps.LatLng(wp.lat, wp.lng));
+    const polyline = new kakao.maps.Polyline({
+      path,
+      strokeWeight: 5,
+      strokeColor: "#0ea5e9",
+      strokeOpacity: 0.9,
+      strokeStyle: "solid",
+      map,
+    });
+    shownPolylineRef.current = polyline;
+  }, [map, shownCourse]);
 
   if (error) {
     return (
@@ -105,7 +171,9 @@ export function MapContainer({ children, onLoad, onMapClick }: Props) {
             whiteSpace: "nowrap",
           }}
         >
-          지도를 클릭해 위치를 선택하세요
+          {courseWaypoints !== undefined
+            ? "지도를 클릭해 경유지를 추가하세요"
+            : "지도를 클릭해 위치를 선택하세요"}
         </div>
       )}
     </div>

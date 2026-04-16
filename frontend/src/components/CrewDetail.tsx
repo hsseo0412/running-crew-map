@@ -1,4 +1,6 @@
 import type { Crew } from "../types/crew";
+import type { Waypoint } from "../types/route";
+import CourseSection from "./CourseSection";
 import ReviewSection from "./ReviewSection";
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -18,9 +20,28 @@ interface Props {
   onBack: () => void;
   onEdit: (crew: Crew) => void;
   onDelete: (crew: Crew) => void;
+  courseMode: boolean;
+  courseWaypoints: Waypoint[];
+  courseDistanceKm: number;
+  onStartCourseEdit: () => void;
+  onCancelCourseEdit: () => void;
+  onShowCourse: (waypoints: Waypoint[] | null) => void;
+  onUndoWaypoint: () => void;
 }
 
-export function CrewDetail({ crew, onBack, onEdit, onDelete }: Props) {
+export function CrewDetail({
+  crew,
+  onBack,
+  onEdit,
+  onDelete,
+  courseMode,
+  courseWaypoints,
+  courseDistanceKm,
+  onStartCourseEdit,
+  onCancelCourseEdit,
+  onShowCourse,
+  onUndoWaypoint,
+}: Props) {
   const days = crew.meeting_day
     ? crew.meeting_day.split(",").map((d) => d.trim())
     : [];
@@ -135,6 +156,18 @@ export function CrewDetail({ crew, onBack, onEdit, onDelete }: Props) {
             </a>
           </>
         )}
+
+        <div style={s.divider} />
+        <CourseSection
+          crewId={crew.id}
+          isEditing={courseMode}
+          waypoints={courseWaypoints}
+          distanceKm={courseDistanceKm}
+          onStartEdit={onStartCourseEdit}
+          onCancelEdit={onCancelCourseEdit}
+          onShowCourse={onShowCourse}
+          onUndoWaypoint={onUndoWaypoint}
+        />
 
         <div style={s.divider} />
         <ReviewSection crewId={crew.id} />

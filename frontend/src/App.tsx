@@ -6,8 +6,23 @@ import { MapContainer } from "./components/map/MapContainer";
 import { MapMarker } from "./components/map/MapMarker";
 import { useDebounce } from "./hooks/useDebounce";
 import type { Crew } from "./types/crew";
+import type { Waypoint } from "./types/route";
 
 type Tab = "list" | "form";
+
+function haversineKm(a: Waypoint, b: Waypoint): number {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const chord =
+    sinLat * sinLat +
+    Math.cos((a.lat * Math.PI) / 180) *
+      Math.cos((b.lat * Math.PI) / 180) *
+      sinLng * sinLng;
+  return R * 2 * Math.atan2(Math.sqrt(chord), Math.sqrt(1 - chord));
+}
 
 export default function App() {
   const [tab, setTab] = useState<Tab>("list");
@@ -17,6 +32,11 @@ export default function App() {
   const [clickedPos, setClickedPos] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedCrew, setSelectedCrew] = useState<Crew | null>(null);
   const [editingCrew, setEditingCrew] = useState<Crew | null>(null);
+
+  // 코스 관련 상태
+  const [courseMode, setCourseMode] = useState(false);
+  const [courseWaypoints, setCourseWaypoints] = useState<Waypoint[]>([]);
+  const [shownCourse, setShownCourse] = useState<Waypoint[] | null>(null);
 
   // 필터 상태
   const [filterLevel, setFilterLevel] = useState("");
@@ -62,9 +82,16 @@ export default function App() {
     setMapInstance(map);
   }, []);
 
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    setClickedPos({ lat, lng });
-  }, []);
+  const handleMapClick = useCallback(
+    (lat: number, lng: number) => {
+      if (courseMode) {
+        setCourseWaypoints((prev) => [...prev, { lat, lng }]);
+      } else {
+        setClickedPos({ lat, lng });
+      }
+    },
+    [courseMode]
+  );
 
   function focusCrew(crew: Crew) {
     if (!mapInstance) return;
@@ -72,10 +99,22 @@ export default function App() {
     mapInstance.panTo(new kakao.maps.LatLng(crew.latitude, crew.longitude));
   }
 
+  function resetCourseState() {
+    setCourseMode(false);
+    setCourseWaypoints([]);
+    setShownCourse(null);
+  }
+
   function handleSelectCrew(crew: Crew) {
+    resetCourseState();
     setSelectedCrew(crew);
     focusCrew(crew);
   }
+
+  const courseDistanceKm = courseWaypoints.reduce((sum, wp, i) => {
+    if (i === 0) return 0;
+    return sum + haversineKm(courseWaypoints[i - 1], wp);
+  }, 0);
 
   // 삭제 버튼
   async function handleDeleteCrew(crew: Crew) {
@@ -116,6 +155,7 @@ export default function App() {
       setClickedPos(null);
     } else {
       setSelectedCrew(null);
+      resetCourseState();
     }
     setTab(next);
   }
@@ -152,9 +192,16 @@ export default function App() {
             selectedCrew ? (
               <CrewDetail
                 crew={selectedCrew}
-                onBack={() => setSelectedCrew(null)}
+                onBack={() => { resetCourseState(); setSelectedCrew(null); }}
                 onEdit={handleEditCrew}
                 onDelete={handleDeleteCrew}
+                courseMode={courseMode}
+                courseWaypoints={courseWaypoints}
+                courseDistanceKm={courseDistanceKm}
+                onStartCourseEdit={() => { setCourseMode(true); setCourseWaypoints([]); }}
+                onCancelCourseEdit={() => { setCourseMode(false); setCourseWaypoints([]); }}
+                onShowCourse={setShownCourse}
+                onUndoWaypoint={() => setCourseWaypoints((prev) => prev.slice(0, -1))}
               />
             ) : (
               <CrewList
@@ -186,7 +233,9 @@ export default function App() {
       <main style={s.mapArea}>
         <MapContainer
           onLoad={handleMapLoad}
-          onMapClick={tab === "form" ? handleMapClick : undefined}
+          onMapClick={tab === "form" || courseMode ? handleMapClick : undefined}
+          courseWaypoints={courseMode ? courseWaypoints : undefined}
+          shownCourse={shownCourse ?? undefined}
         >
           {filteredCrews.map((crew) => (
             <MapMarker
@@ -196,7 +245,7 @@ export default function App() {
               title={crew.name}
               crew={crew}
               isSelected={selectedCrew?.id === crew.id}
-              onSelect={tab === "list" ? handleSelectCrew : undefined}
+              onSelect={tab === "list" && !courseMode ? handleSelectCrew : undefined}
             />
           ))}
 

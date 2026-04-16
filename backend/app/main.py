@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.crews import router as crews_router
 from app.api.reviews import router as reviews_router
+from app.api.routes_api import router as routes_router
 from app.core.config import settings
 
 app = FastAPI(title=settings.app_name, debug=settings.debug)
@@ -17,6 +18,7 @@ app.add_middleware(
 
 app.include_router(crews_router)
 app.include_router(reviews_router)
+app.include_router(routes_router)
 
 
 @app.get("/health")
