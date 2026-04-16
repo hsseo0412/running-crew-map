@@ -106,6 +106,8 @@ npm run dev
 
 모든 작업은 feature 브랜치에서 진행 후 main에 squash merge한다.
 
+**커밋·푸시 규칙**: 작업 완료 후 커밋과 푸시는 반드시 사용자에게 먼저 확인하고, 허락이 있을 때만 진행한다.
+
 ```bash
 # 1. 작업 시작
 git checkout -b feat/기능명   # 또는 fix/, refactor/
