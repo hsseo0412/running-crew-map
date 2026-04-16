@@ -193,7 +193,7 @@ const s = {
     display: "flex",
     flexDirection: "column" as const,
     gap: 10,
-    overflowY: "auto" as const,
+    overflowY: "scroll" as const,
     flex: 1,
   },
   name: {

@@ -85,7 +85,7 @@ running-crew-map/
 - [o] 주소 검색 자동완성 (카카오 API)
 - [o] Redis 캐싱 (전체 목록, TTL 60s, Fallback 포함)
 - [o] 난이도/요일 필터
-- [ ] 크루 간단 리뷰/후기
+- [o] 크루 후기 (별점 + 텍스트, 목록·InfoWindow 평점 표시)
 
 ## 개발 환경 실행
 
