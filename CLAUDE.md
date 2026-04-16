@@ -102,6 +102,33 @@ cd frontend
 npm run dev
 ```
 
+## Git 작업 규칙
+
+모든 작업은 feature 브랜치에서 진행 후 main에 squash merge한다.
+
+```bash
+# 1. 작업 시작
+git checkout -b feat/기능명   # 또는 fix/, refactor/
+
+# 2. 작업 + 커밋
+
+# 3. main에 병합
+git checkout main
+git merge --squash feat/기능명
+git commit -m "feat: ..."
+git push origin main
+
+# 4. 브랜치 정리
+git branch -d feat/기능명
+```
+
+**브랜치 네이밍**
+- `feat/` — 새 기능
+- `fix/` — 버그 수정
+- `refactor/` — 리팩터링
+
+**주의**: main 브랜치에 직접 커밋하지 않는다.
+
 ## 주요 결정 사항
 
 - **검색은 백엔드 ILIKE** — 프론트 필터링 대신 서버 쿼리로 처리 (확장성)
