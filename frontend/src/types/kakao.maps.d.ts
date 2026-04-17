@@ -47,7 +47,7 @@ declare namespace kakao {
     }
 
     interface MarkerOptions {
-      map: Map;
+      map?: Map | null;
       position: LatLng;
       title?: string;
     }
@@ -59,14 +59,32 @@ declare namespace kakao {
       setTitle(title: string): void;
     }
 
+    interface CustomOverlayOptions {
+      position: LatLng;
+      content: string | HTMLElement;
+      yAnchor?: number;
+      xAnchor?: number;
+      zIndex?: number;
+      map?: Map;
+    }
+
+    class CustomOverlay {
+      constructor(options: CustomOverlayOptions);
+      setMap(map: Map | null): void;
+      setPosition(position: LatLng): void;
+      setContent(content: string | HTMLElement): void;
+      getPosition(): LatLng;
+    }
+
     interface InfoWindowOptions {
       content: string;
       removable?: boolean;
+      disableAutoPan?: boolean;
     }
 
     class InfoWindow {
       constructor(options: InfoWindowOptions);
-      open(map: Map, marker: Marker): void;
+      open(map: Map, anchor: Marker | CustomOverlay): void;
       close(): void;
     }
 
