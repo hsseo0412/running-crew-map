@@ -9,7 +9,7 @@ from app.core.database import get_db
 from app.core.redis import CACHE_KEY_CREWS_LIST, CACHE_TTL, get_redis
 from app.models.crew import Crew
 from app.models.review import Review
-from app.schemas.crew import CrewCreate, CrewResponse, CrewUpdate
+from app.schemas.crew import CrewCreate, CrewResponse, CrewUpdate, RankedCrewResponse
 
 router = APIRouter(prefix="/api/crews", tags=["crews"])
 
@@ -82,6 +82,40 @@ def list_crews(
                 pass  # 캐시 write 실패 시 무시
 
     return result
+
+
+@router.get("/ranking", response_model=list[RankedCrewResponse])
+def get_ranking(
+    limit: int = Query(default=5, ge=1, le=20),
+    db: Session = Depends(get_db),
+):
+    rating_sq = (
+        db.query(
+            Review.crew_id,
+            func.avg(Review.rating).label("avg_rating"),
+            func.count(Review.id).label("review_count"),
+        )
+        .group_by(Review.crew_id)
+        .having(func.count(Review.id) > 0)
+        .subquery()
+    )
+    rows = (
+        db.query(Crew, rating_sq.c.avg_rating, rating_sq.c.review_count)
+        .join(rating_sq, Crew.id == rating_sq.c.crew_id)
+        .order_by(rating_sq.c.avg_rating.desc(), rating_sq.c.review_count.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        RankedCrewResponse(
+            id=crew.id,
+            name=crew.name,
+            avg_rating=round(float(avg_rating), 1),
+            review_count=review_count,
+            address=crew.address,
+        )
+        for crew, avg_rating, review_count in rows
+    ]
 
 
 @router.get("/{crew_id}", response_model=CrewResponse)

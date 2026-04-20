@@ -1,5 +1,6 @@
 import type React from "react";
 import type { Crew } from "../types/crew";
+import { CrewRanking } from "./CrewRanking";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "초급",
@@ -40,6 +41,12 @@ export function CrewList({
 }: Props) {
   return (
     <div>
+      <CrewRanking
+        onSelectCrew={(id) => {
+          const found = crews.find((c) => c.id === id);
+          if (found) onClickCrew(found);
+        }}
+      />
       {/* 검색 영역 — Design Ref: §5.1 */}
       <div style={s.searchSection}>
         <div style={s.searchInputWrap}>

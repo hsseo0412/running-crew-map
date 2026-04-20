@@ -67,3 +67,13 @@ class CrewResponse(CrewBase):
     review_count: int = 0
 
     model_config = {"from_attributes": True}
+
+
+class RankedCrewResponse(BaseModel):
+    id: int
+    name: str
+    avg_rating: float
+    review_count: int
+    address: str | None = None
+
+    model_config = {"from_attributes": True}

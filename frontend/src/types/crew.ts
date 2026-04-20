@@ -1,3 +1,11 @@
+export interface RankedCrew {
+  id: number;
+  name: string;
+  avg_rating: number;
+  review_count: number;
+  address: string | null;
+}
+
 export interface Crew {
   id: number;
   name: string;
