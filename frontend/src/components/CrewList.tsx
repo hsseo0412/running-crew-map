@@ -1,4 +1,5 @@
 import type React from "react";
+import { useState, useEffect } from "react";
 import type { Crew } from "../types/crew";
 import { CrewRanking } from "./CrewRanking";
 
@@ -25,6 +26,20 @@ interface Props {
   onFilterDayChange: (v: string) => void;
 }
 
+const PAGE_SIZE = 10;
+
+function getPageNumbers(current: number, total: number): number[] {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const half = 2;
+  let start = Math.max(1, current - half);
+  let end = Math.min(total, current + half);
+  if (end - start < 4) {
+    if (start === 1) end = Math.min(total, 5);
+    else start = Math.max(1, end - 4);
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
+
 export function CrewList({
   crews,
   fetchError,
@@ -39,6 +54,18 @@ export function CrewList({
   onFilterLevelChange,
   onFilterDayChange,
 }: Props) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterLevel, filterDay]);
+
+  const totalPages = Math.ceil(crews.length / PAGE_SIZE);
+  const pagedCrews = crews.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   return (
     <div>
       <CrewRanking
@@ -117,7 +144,7 @@ export function CrewList({
       )}
 
       <ul style={s.list}>
-        {crews.map((crew) => (
+        {pagedCrews.map((crew) => (
           <li
             key={crew.id}
             style={{ ...s.card, ...(selectedCrewId === crew.id ? s.cardActive : {}) }}
@@ -161,6 +188,34 @@ export function CrewList({
           </li>
         ))}
       </ul>
+
+      {totalPages > 1 && (
+        <div style={s.pagination}>
+          <button
+            style={{ ...s.pageBtn, ...(currentPage === 1 ? s.pageBtnDisabled : {}) }}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            ❮
+          </button>
+          {getPageNumbers(currentPage, totalPages).map((n) => (
+            <button
+              key={n}
+              style={{ ...s.pageBtn, ...(n === currentPage ? s.pageBtnActive : {}) }}
+              onClick={() => setCurrentPage(n)}
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            style={{ ...s.pageBtn, ...(currentPage === totalPages ? s.pageBtnDisabled : {}) }}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            ❯
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -278,6 +333,35 @@ const s = {
     color: "#0369a1",
     borderRadius: 4,
     padding: "2px 7px",
+  },
+  pagination: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 4,
+    padding: "10px 0",
+    borderTop: "1px solid #f0f0f0",
+  },
+  pageBtn: {
+    minWidth: 28,
+    height: 28,
+    border: "1px solid #d1d5db",
+    borderRadius: 4,
+    background: "#fff",
+    color: "#374151",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  pageBtnActive: {
+    background: "#0ea5e9",
+    borderColor: "#0ea5e9",
+    color: "#fff",
+    fontWeight: 700,
+  },
+  pageBtnDisabled: {
+    color: "#d1d5db",
+    cursor: "not-allowed",
+    borderColor: "#f0f0f0",
   },
   errorText: { color: "#dc2626", padding: "12px 16px", fontSize: 13, margin: 0 },
   emptyText: {
