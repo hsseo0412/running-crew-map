@@ -104,24 +104,24 @@ npm run dev
 
 ## Git 작업 규칙
 
-모든 작업은 feature 브랜치에서 진행 후 main에 squash merge한다.
+모든 작업은 **작업 시작 전** feature 브랜치를 생성하고, 해당 브랜치에서 작업 후 main에 squash merge한다.
 
-**커밋·푸시 규칙**: 작업 완료 후 커밋과 푸시는 반드시 사용자에게 먼저 확인하고, 허락이 있을 때만 진행한다.
+**커밋·푸시 규칙**: 커밋과 푸시는 반드시 사용자에게 먼저 확인하고, 허락이 있을 때만 진행한다.
 
 ```bash
-# 1. 작업 시작
+# 1. 작업 시작 전 브랜치 생성 (구현 전에 먼저)
 git checkout -b feat/기능명   # 또는 fix/, refactor/
 
-# 2. 작업 + 커밋
+# 2. 브랜치에서 작업 + 커밋
 
-# 3. main에 병합
+# 3. 사용자 확인 후 main에 병합
 git checkout main
 git merge --squash feat/기능명
 git commit -m "feat: ..."
 git push origin main
 
 # 4. 브랜치 정리
-git branch -d feat/기능명
+git branch -D feat/기능명
 ```
 
 **브랜치 네이밍**
